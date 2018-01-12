@@ -1,0 +1,383 @@
+# .htaccess
+#
+# Copyright 2018 Domokos Endre János <domokos.endrejanos@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# Felhasznált irodalom/források:
+# http://htaccess.petertoth.hu/
+# https://intermatrix.hu/deny-badbots
+# http://tab-studio.com/en/blocking-robots-on-your-page/
+# http://tltech.com/info/referrer-htaccess/
+#
+
+# Szerver szignatúra eltávolítása
+ServerSignature Off
+
+# Időzóna beállítása
+SetEnv TIME_ZONE Europe/Budapest
+
+# Alapértelmezett karakterkészlet
+AddDefaultCharset UTF-8
+
+# Állományok listázásának tiltása
+Options -Indexes
+
+# Alapértelmezett kezdőlap
+DirectoryIndex index.php index.html index.htm
+
+# Szimbolikus linkek engedélyezése
+Options +FollowSymLinks
+
+# .htaccess file védelme
+<files .htaccess>
+  order allow,deny
+  deny from all
+  satisfy all
+</files>
+
+# robots.txt védelme
+<Files robots.txt>
+  Order Deny,Allow
+  Deny from All
+  Allow from googlebot.com google.com google-analytics.com google-proxy.com baiduspider.com yandex.com yahoo.com msnbot.com bing.com
+</Files>
+
+# Átirányítási szabályok, ha a rewrite modul engedélyezve van
+<IfModule mod_rewrite.c>
+
+  RewriteEngine on
+  RewriteBase /
+  RewriteOptions MaxRedirects=10
+
+  # Környezeti változók beállítása
+  RewriteCond %{HTTPS} =on
+  RewriteRule ^(.*)$ - [E=ps:s]
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^(.*)$ - [E=ps]
+
+  # Minden kérés átirányítása www-nélküli címre
+  RewriteCond %{HTTP_HOST} ^www.(.+)$ [NC]
+  RewriteRule ^(.*)?$ http%{ENV:ps}://%1/$1 [R=301,L]
+
+  # Nem GET, POST típusú, illetve nem HTTP 1.0 vagy HTTP 1.1 protokoll szerinti kérelem visszautasítása
+  RewriteCond %{THE_REQUEST} !^(GET|POST)\ /.*\ HTTP/1\.(0|1)$ [NC]
+  RewriteRule ^(.*) - [F]
+
+  # hotlink tiltása
+  RewriteCond %{HTTP_USER_AGENT} (^facebookexternalhit) [NC]
+  RewriteCond %{HTTP_HOST}@@%{HTTP_REFERER} !^([^@]*)@@http(s)?://(www\.)?\1/.* [NC,OR]
+  RewriteCond %{HTTP_REFERER} !.*(google|q=cache|yandex).* [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} !.*(google|bingbot|Googlebot\-Image).* [NC]
+  RewriteRule .(png|gif|jpe?g)$ - [F,L]
+
+  # Kértékony vagy azonosítatlan robotok visszautasítása
+  RewriteCond %{REMOTE_HOST} !(baiduspider|googlebot|^google\-proxy|yandex|yahoo|msnbot|bing) [NC]
+  RewriteCond %{HTTP_USER_AGENT} (192\.comagent|1noonbot|1on1searchbot|3de\_search2|3d\_search|3g\ bot|3gse|50\.nu|a1\ sitemap\ generator) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (a6\-indexer|aasp|abachobot|abonti|abotemailsearch|aboundex|aboutusbot|accmonitor\ compliance\ server|accoon) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (acme\.spider|acoonbot|acquia\-crawler|activetouristbot|ad\ muncher|adamm\ bot|adbeat\_bot|adminshop\.com|advanced\ email\ extractor) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (aespider|af\ knowledge\ now\ verity\ spider|aggregator:vocus|ah\-ha\.com\ crawler|ahrefs|aibot|aidu|aihitbot|aipbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (aitcsrobot/1\.1|ajsitemap|akamai\-sitesnapshot|alexawebsearchplatform|alexfdownload|alexibot|alkalinebot|all\ acronyms\ bot|alpha\ search\ agent) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (amfibibot|ampmppc\.com|amznkassocbot|anemone|anonymous|anotherbot|answerbot|answerbus|answerchase\ prove) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (antibot|antisantyworm|antro\.net|aonde\-spider|aport|appengine\-google|appid\:\ s\~stremor\-crawler\-|aqua\_products|arabot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (arachnophilia|archive\.org\_bot|aria\ equalizer|arianna\.libero\.it|arikus\_spider|art\-online\.com|artavisbot|artera|asaha\ search\ engine\ turkey) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (aspider|aspseek|asterias|astrofind|athenusbot|atlocalbot|atomic\_email\_hunter|attach|attrakt) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (augurfind|auresys|autobaron\ crawler|autoemailspider|autowebdir|avsearch\-|axfeedsbot|axonize\-bot|ayna) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (backdoorbot|backrub|backstreet\ browser|backweb|baidu|bandit|batchftp|baypup|bdfetch) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (becomejpbot|beetlebot|bender|besserscheitern\-crawl|betabot|big\ brother|big\ data|bigado\.com|bigcliquebot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (biglotron|bilbo|bilgibetabot|bilgibot|bintellibot|bitlybot|bitvouseragent|bizbot003|bizbot04) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (black\ hole|black\.hole|blackbird|blackmask\.net\ search\ engine|blackwidow|bladder\ fusion|blaiz\-bee|blexbot|blinkx) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (blog\ conversation\ project|blogmyway|blogpulselive|blogrefsbot|blogscope|blogslive|bloobybot|blowfish|blt) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (boaconstrictor|boardreader|boia\-scan\-agent|boia\.org|boitho|boi\_crawl\_00|bookmark\ buddy\ bookmark\ checker|bookmark\ search\ tool|bosug) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (botalot|botrighthere|botswana|bottybot|bpbot|braintime\_search|brokenlinkcheck\.com|browseremulator|browsermob) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (bsearchr&d|bspider|btbot|btsearch|bubing|buddy|buibui|buildcms\ crawler|builtbottough) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (bumblebee|bunnyslippers|buscadorclarin|buscaplus\ robi|butterfly|buyhawaiibot|buzzbot|byindia|byspider) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (bzbot|c\ r\ a\ w\ l\ 3\ r|cacheblaster|caddbot|cafi|camcrawler|camelstampede|canon\-webrecord|careerbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (catchbot|cazoodle|ccbot|ccgcrawl|ccubee|cd\-preload|ce\-preload|cegbfeieh|cerberian\ drtrs) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (cfetch|cfnetwork|chameleon|charlotte|check&get|checkbot|checklinks|cheesebot|chemiede\-nodebot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (chilkat|chinaclaw|cipinetbot|cis455crawler|citeseerxbot|cizilla|clariabot|climate\ ark|climateark\ spider) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (clushbot|coast\ scan\ engine|coast\ webmaster\ pro|coccoc|collapsarweb|collector|colocrossing|combine|connectsearch) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (contentsmartz|contextad\ bot|contype|cookienet|coolbot|coolcheck|copernic|copier|copyrightcheck) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (cosmos|covario\-ids|cowbot\-|cowdog\ bot|crabbybot|craftbot\@yahoo\.com|crawler\.kpricorn\.org|crawler43\.ejupiter\.com|crawler4j) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (crawler\_for\_infomine|crawly|crawl\_application|creativecommons|crescent|cs\-crawler|cse\ html\ validator|cshttpclient|cuasarbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (curl|custo|cvaulev|cyberdog|cybernavi\_webget|cyberpatrol\ sitecat\ webbot|cyberspyder|cydralspider|d1garabicengine) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (datafountains|dataparksearch|dataprovider\.com|datascape\ robot|dataspearspiderbot|dataspider|dattatec\.com|daumoa|dblbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (declumbot|deepindex|deepnet\ crawler|deeptrawl|dejan|del\.icio\.us\-thumbnails|deltascan|delvubot|der\ gro§e\ bildersauger) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (deusu|dfs\-fetch|diagem|diamond|dibot|didaxusbot|digext|digger|digi\-rssbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (digout4u|diibot|dillo|dir\_snatch\.exe|disco|distilled\-reputation\-monitor|djangotraineebot|dkimrepbot|dmoz\ downloader) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (dof\-verify|domaincrawler|domainscan|domainwatcher\ bot|dotbot|dotspotsbot|dow\ jones\ searchbot|download|doy) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (drip|drone|dtaagent|dtsearchspider|dumbot|dwaar|dxseeker|e\-societyrobot|eah) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (earth\ science\ educator\ \ robot|easydl|ebingbong|ec2linkfinder|ecairn\-grabber|ecatch|echoosebot|edisterbot|edugovsearch) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (eidetica\.com|eirgrabber|elblindo\ the\ blind\ bot|elisabot|ellerdalebot|email\ exractor|emailcollector|emailleach|emailsiphon) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (emeraldshield|empas\_robot|enabot|endeca|enigmabot|enswer\ neuro\ bot|enter\ user\-agent|entitycubebot|erocrawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (esyndicat\ bot|eurosoft\-bot|evaal|eventware|everest\-vulcan\ inc\.|exabot|exactsearch|exactseek|exooba) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (express\ webpictures|extractor|eyenetie|ez\-robot|ezooms|f\-bot\ test\ pilot|factbot|fairad\ client|falcon) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (fast\ esp|fast\-search\-engine|fastbot\ crawler|fastbot\.de\ crawler|fatbot|favcollector|faviconizer|favorites\ sweeper|fdm) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (fedcontractorbot|fembot|fetch\ api\ request|fetch\_ici|fgcrawler|filangy|filehound|findanisp\.com\_isp\_finder|findlinks) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (firebat|firstgov\.gov\ search|flaming\ attackbot|flamingo\_searchengine|flashcapture|flashget|flickysearchbot|fluffy\ the\ spider|flunky) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (followsite|foobot|fooooo\_web\_video\_crawl|fopper|formulafinderbot|forschungsportal|francis|freewebmonitoring\ sitechecker|freshcrawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (freshlinks\.exe|friendfeedbot|frodo\.at|froggle|frontpage|froola\ bot|fr\_crawler|fu\-nbi|full\_breadth\_crawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (furlbot|g10\-bot|gaisbot|galaxybot|gazz|gbplugin|generate\_infomine\_category\_classifiers|genevabot|geniebot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (geomaxenginebot|geometabot|geonabot|geovisu|germcrawler\|gethtmlcontents|getleft|getright|getsmart) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (getweb!|giant|gigablastopensource|gigabot|girafabot|gleamebot|gnome\-vfs|go!zilla|go\-ahead\-got\-it) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (goforit\.com|goforitbot|gold\ crawler|goldfire\ server|golem|goodjelly|gordon\-college\-google\-mini|goroam|goseebot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (govbot|gpu\ p2p\ crawler|grabber|grabnet|grafula|grapefx|grapeshot|grbot|greenyogi) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (grub|gsa|gslfbot|gulliver|gulperbot|gurujibot|gvc\ business\ crawler|gvc\ crawler|gvc\ search\ bot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (gvc\ weblink\ crawler|gvc\ world\ links|gvcbot\.com|happyfunbot|harvest|hatena\ antenna|hawler|hcat|hclsreport\-crawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (header\_test\_client|healia\|helix|here\ will\ be\ link\ to\ crawler\ site|heritrix|hiscan|hisoftware\ accmonitor\ server|hisoftware\ accverify|hitcrawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (hloader|hmsebot|hmview|hoge|holmes|homepagesearch|hooblybot\-image|hoowwwer|hostcrawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (hsft\ \\-\ lvu\ scanner|hslide|ht://check|htdig|html\ link\ validator|htmlparser|httplib|httrack|huaweisymantecspider) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (humanlinks|hyperestraier|hyperix|iaarchiver\-|ia\_archiver|ibuena|icab|icds\-ingestion|ichiro) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (ieautodiscovery|iecheck|ihwebchecker|iiitbot|iim\_405|ilsebot|iltrovatore|image\ stripper|image\ sucker) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (imagebot|imagefortress|imageshereimagesthereimageseverywhere|imagevisu|imds\_monitor|imo\-google\-robot\-intelink|inagist\.com\ url\ crawler|indexer|industry\ cortex\ webcrawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (indylabs\_marius|inelabot|inet32\ ctrl|inetbot|info\ seeker|infolink|infomine|infonavirobot|informant) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (infotekies|infousabot|ingrid|inktomi|insightscollector|insightsworksbot|inspirebot|insumascout|intelix) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (interget|internet\ ninja|internet\ radio\ crawler|internetlinkagent|interseek|ioi|ip\-web\-crawler\.com|ipadd\ bot|ipselonbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (iria|irlbot|iron33|isara|isearch|isilox|istellabot|its\-learning\ crawler|iu\_csci\_b659\_class\_crawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (jadynave|java|jbot|jemmathetourist|jennybot|jetbot|jetbrains\ omea\ pro|jetcar|jim) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (jobspider\_ba|joc|joedog|joyscapebot|jspyda|junut\ bot|justview|jyxobot|k\.s\.bot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (kalooga|katatudo\-spider|kbeta1|keepni\ web\ site\ monitor|kenjin\.spider|keybot\ translation\-search\-machine|keywenbot|keyword\ density|keyword\.density) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (kitenga\-crawler\-bot|kiwistatus|kmbot\-|kmccrew\ bot\ search|knight|knowitall|knowledge\ engine|knowledge\.com|koepabot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (korniki|krowler|ksbot|kuloko\-bot|kulturarw3|kummhttp|kurzor|kyluka\ crawl|l\.webis) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (labourunions411|lachesis|lament|lamerexterminator|lapozzbot|larbin|lbot|leaptag|leechftp) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (letscrawl\.com|lexibot|lexxebot|lftp|libcrawl|libiviacore|libw|likse|linguee\ bot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (link\ validator|linkalarm|linkbot|linkcheck\ by\ siteimprove\.com|linkcheck\ scanner|linkchecker|linkdex\.com|linkextractorpro|linklint) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (linkman|links\ sql|linkscan|linksmanager\.com\_bot|linksweeper|linkwalker|link\_checker|litefinder|litlrbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (livelapbot|lm\ harvester|lmqueuebot|lnspiderguy|loadtimebot|localcombot|locust|lolongbot|lookbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (lssbot|lt\ scotland\ checklink|ltx71.com|lwp|lycos\_spider|lydia\ entity\ spider|lynnbot|lytranslate|mag\-net) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (magpie\-crawler|magus\ bot|mail\.ru|mainseek\_bot|mammoth|map\ robot|markwatch|masagool|masidani\_bot\_) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (mata\ hari|mata\.hari|matentzn\ at\ cs\ dot\ man\ dot\ ac\ dot\ uk|maxamine\.com\-\-robot|maxamine\.com\-robot|maxomobot|mcbot|medrabbit|megite) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (memo|mendeleybot|mercator\-|mercuryboard\_user\_agent\_sql\_injection\.nasl|metacarta|metaeuro\ web\ search|metager2|metagloss|metal\ crawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (metaspider|metaspinner|metauri|mfcrawler|mfhttpscan|midown\ tool|miixpc|mini\-robot|minibot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (mirror|missigua\ locator|mister\ pix|mister\.pix|miva|mj12bot|mnogosearch|moduna\.com|mod\_accessibility) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (mojeekbot|monkeycrawl|moses|mowserbot|mqbot|mse360|msindianwebcrawl|msmobot|msnptc) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (mt\-soft|multitext|my\-heritrix\-crawler|myapp|mycompanybot|mycrawler|myengines\-us\-bot|myfamilybot|myra) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (nabot|najdi\.si|nambu|nameprotect|nasa\ search|natchcvs|natweb\-bad\-link\-mailer|naver|navroad) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (nec\-meshexplorer|neosciocrawler|nerdbynature\.bot|nerdybot|nerima\-crawl-|nessus|nestreader|net\ vampire|net::trackback) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (netcarta\ cyberpilot\ pro|netcraft|netexperts|netid\.com\ bot|netmechanic|netprospector|netresearchserver|netseer|netshift=) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (netsparker|netspider|netsrcherp|netzip|newmedhunt|news\ bot|newsgatherer|newsgroupreporter|newstrovebot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (nextgensearchbot|nextthing\.org|nicebot|nicerspro|niki\-bot|nimblecrawler|nimbus\-1|ninetowns|ninja) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (nlese|nogate|norbert\ the\ spider|noteworthybot|npbot|nrcan\ intranet\ crawler|nsdl\_search\_bot|nuggetize\.com\ bot|nusearch\ spider) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (nu\_tch|nwspider|nymesis|nys\-crawler|objectssearch|obot|obvius\ external\ linkcheck|ocelli|octopus) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (oegp|offline\ navigator|offline\.explorer|ogspider|omiexplorer\_bot|omniexplorer|omnifind|omniweb|onetszukaj) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (oozbot|openbot|openfind|openintelligencedata|openisearch|openlink\ virtuoso\ rdf\ crawler|opensearchserver\_bot|opidig|optidiscover) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (oracle\ ultra\ search|orangebot|orisbot|ornl\_crawler|ornl\_mercury|osis\-project\.jp|oso|outfoxbot|outfoxmelonbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (owsbot|ozelot|p3p\ client|pagebiteshyperbot|pagebull|pagedown|pagefetcher|pagegrabber|pagepeeker) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (page\_verifier|pamsnbot\.htm|panopy\ bot|panscient\.com|pansophica|papa\ foto|paperlibot|parasite|parsijoo) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (pattern|patwebbot|pavuk|paxleframework|pbbot|pcbrowser|pcore\-http|pd\-crawler|penthesila) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (perman|personal\ ultimate\ crawler|php\ version\ tracker|phpcrawl|phpdig|picosearch|pieno\ robot|pipbot|pipeliner) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (pixfinder|piyushbot|planetwork\ bot\ search|plucker|plukkie|plumtree|pockey|pocohttp|pogodak\.ba) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (poirot|polybot|pompos|poodle\ predictor|popscreenbot|postpost|privacyfinder|projectwf\-java\-test\-crawler|propowerbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (proxem\ websearch|proximic|proxy\ crawler|psbot|pss\-bot|psycheclone|pub\-crawler|pucl|pulsebot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (pwebot|python|qeavis\ agent|qfkbot|qualidade|qualidator\.com\ bot|quepasacreep|queryn\ metasearch|queryn\.metasearch) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (quintura\-crw|qunarbot|qwantify|qweerybot|qweery\_robot\.txt\_checkbot|r2ibot|r6\_commentreader|r6\_feedfetcher|r6\_votereader) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (radian6|radiation\ retriever|rampybot|rankivabot|rankur|rational\ sitecheck|rcstartbot|realdownload|reaper) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (recorder|redbot|redcarpet|reget|repomonkey|research\ robot|riddler|riight|risenetbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (robopal|robosourcer|robotek|robozilla|roger|rome\ client|rondello|rotondo|roverbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (rtgibot|rufusbot|runnk\ online\ rss\ reader|runnk\ rss\ aggregator|s2bot|safaribookmarkchecker|safednsbot|safetynet\ robot|saladspoon) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (sapphireweb|sbider|sbl\-bot|scfcrawler|scich|scientificcommons\.org|scollspider|scooperbot|scooter) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (scrapebox|scrapy|scrawltest|screaming\ frog|scrubby|scspider|scumbot|search\ publisher|search\ x\-bot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (search\-engine\-studio|search\.kumkie\.com|search\.updated\.com|search\.usgs\.gov|searcharoo\.net|searchblox|searchbot|searchengine|searchhippo\.com) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (searchmarking|searchmarks|searchmee!|searchmee\_v|searchmining|searchnowbot|searchpreview|searchspider\.com|searqubot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (seekbot|seeker\.lookseek\.com|seeqbot|seeqpod\-vertical\-crawler|selflinkchecker|semager|semanticdiscovery|semantifire|semisearch) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (seoengworldbot|seokicks|seznambot|shablastbot|shadowwebanalyzer|shareaza|shelob|sherlock|shim\-crawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (shopwiki|showlinks|showyoubot|siclab|silk|simplepie|siphon|sitebot|sitecheck) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (siteguardbot|siteorbiter|sitesnagger|sitesucker|sitesweeper|sitexpert|skimbot|skimwordsbot|skreemrbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (sleipnir|slow\-crawler|slysearch|smart\-crawler|smartdownload|smarte\ bot|smartwit\.com|snake|snap\.com\ beta\ crawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (snappreviewbot|snappy|snookit|snooper|snoopy|societyrobot|socscibot|soft411\ directory|sogou) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (sohu\-search|sokitomi\ crawl|solbot|sondeur|sootle|sosospider|space\ bison|space\ fung|spacebison) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (spanner|spatineo\ monitor\ controller|spatineo\ serval\ controller|spatineo\ serval\ getmapbot|special\_archiver|speedy|sphere\ scout|sphider|spider\.terranautic\.net) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (spiderku|spiderman|spinn3r|spinne|sportcrew\-bot|sproose|spyder3\.microsys\.com|sq\ webscanner|sqlmap) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (squidclamav\_redirector|sqworm|srevbot|sslbot|ssm\ agent|stackrambler|stardownloader|statbot|statcrawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (steeler|stegmann\-bot|stero|stripper|stumbler|suchclip|sucker|sumeetbot|sumitbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (summizefeedreader|sunrise\ xp|superbot|superhttp|superlumin\ downloader|superpagesbot|supremesearch\.net|supybot|surdotlybot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (surveybot|suzuran|swebot|swish\-e|sygolbot|synapticwalker|syntryx\ ant\ scout\ chassis\ pheromone|systemsearch\-robot|szukacz) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (t\-h\-u\-n\-d\-e\-r\-s\-t\-o\-n\-e|tailrank|takeout|talkro\ web\-shot|tamu\_crawler|tapuzbot|tarantula|targetblaster\.com|targetyournews\.com\ bot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (taxinomiabot|teamsoft\ wininet\ component|tecomi\ bot|teezirbot|teleport|telesoft|teradex\ mapper|teragram\_crawler|terrawizbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (testing\ of\ bot|textbot|thatrobotsite\.com|the\ dyslexalizer|the\ intraformant|the\.intraformant|thenomad|theophrastus|theusefulbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (thumbnail\.cz\ robot|thumbshots\-de\-bot|tigerbot|tighttwatbot|tineye|titan|to\-dress\_ru\_bot\_|to\-night\-bot|tocrawl) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (topicblogs|toplistbot|topserver\ php|topyx\-crawler|touche|tourlentascanner|tpsystem|traazi|transgenikbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (travelbot|travellazerbot|treezy|trendiction|trex|tridentspider|trovator|true\_robot|tscholarsbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (tswebbot|tulipchain|turingos|turnitinbot|tutorgigbot|tweetedtimes\ bot|tweetmemebot|twengabot|twice) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (twinuffbot|twisted\ pagegetter|twitturls|twitturly|tygobot|tygoprowler|typhoeus|u\.s\.\ government\ printing\ office|uberbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (udmsearch|ufam\-crawler\-|ultraseek|unchaos|unisterbot|unidentified|unitek\ uniengine|universalsearch|unwindfetchor) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (updated|url\ control|url\-checker|urlappendbot|urlblaze|urlchecker|urlck|urldispatcher|urlspiderpro) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (urly\.warning|url\_gather|usaf\ afkn\ k2spider|usasearch|uss\-cosmix|usyd\-nlp\-spider|vacobot|vacuum|vadixbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (validator|valkyrie|vbseo|vci\ webviewer\ vci\ webviewer\ win32|verbstarbot|vericitecrawler|verifactrola|verity\-url\-gateway|vermut) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (versus\.integis\.ch|viasarchivinginformation\.html|vipr|virus\-detector|virus\_detector|visbot|vishal\ for\ clia|visweb|vital\ search'n\ urchin) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (vlsearch|voilabot|vmbot|vocusbot|voideye|voil|vortex|voyager|vspider) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (w3c\_unicorn|w3search|wacbot|wanadoo|wastrix|water\ conserve\ portal|water\ conserve\ spider|watzbot|wauuu) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (waypath|wazzup|wbdbot|web\ ceo\ online\ robot|web\ crawler|web\ downloader|web\ image\ collector|web\ link\ validator|web\ magnet) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (web\ sucker|web\-agent|web\-sniffer|web\.image\.collector|webaltbot|webauto|webbot|webbul\-bot|webcapture) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (webclipping\.com|webcollage|webcopier|webcopy|webcorp|webcrawl\.net|webcrawler|webdatacentrebot|webdownloader\ for\ x) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (webemailextrac|webenhancer|webfetch|webgather|webgo\ is|webgobbler|webimages|webinator\-search2|webinator\-wbi) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (weblayers|webleacher|weblexbot|weblinker|weblyzard|webmastercoffee|webmasterworld\ extractor|webmasterworldforumbot|webminer) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (webot|webpix|webreaper|webripper|websauger|webscan|websearchbench|website|webspear) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (webspider|webster|webstripper|webtrafficexpress|webtrends\ link\ analyzer|webvac|webwalk|webwasher|webwatch) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (webxm|webzip|weddings\.info|wenbin|wep\ search|wepa|werelatebot|wget|whacker) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (whowhere\ robot|widow|wikiabot|wikio|wikiwix\-bot\-|winhttp|wire|wisebot|wisenutbot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (wish\-project|wisponbot|wmcai\-robot|wminer|wmsbot|woriobot|worldshop|worqmada|wotbox) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (www\ collector|www\-collector\-e|www\-mechanize|wwwoffle|wwwrobot|wwwster|wwwwanderer|wwwxref|wysigot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (x\-crawler|xaldon|xenu|xerka\ metabot|xerka\ webbot|xget|xirq|xmarksfetch|xqrobot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (yacy\.net|yacybot|yanga\ worldsearch\ bot|yarienavoir\.net|yasaklibot|yats\ crawler|ybot|yebolbot|yellowjacket) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (yolinkbot|yooglifetchagent|yoono|yottacars\_bot|yourls|z\-add\ link\ checker|zagrebin|zao|zedzo\.validate) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (zeus|zibber\-v|zimeno|zing-bottabot|zipppbot|zongbot|zoomspider|zotag\ search|zsebot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (zyborg|zyte\|Abelssoft|Abonti|ABrowse|Add\sCatalog|AddSugarSpiderBot|ADmantX|admantx\-euastn) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (aiHitBot|Alexa|America|Apache-HttpClient|^Aport$|Applebot|Application|Arachnida|archive) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Auto\sShell\sSpider|Babya\sDiscoverer|Barkrowler|base64_decode|BehloolBot|BIDUBrowser|BitActive|BLABLUBB|BLEXBot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (BrowseX|BUbiNG|BuzzSumo|ca\-crawler|CakePHP|CCBot|^CIA$|Cliqzbot|^com\.apple) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (ContextAd|CRAZYWEBCRAWLER|^Chrome|Chrome$|Chrome/99|Chrome/\d\d\d|Cloudflare|CrowdStrike) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Dataprovider\.com|Daum|DDG\-Android|Dealio\sToolbar|DeuSu|Diagnostics|DigExt|Dillo|Dispatch) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (DomainAppender|DomainCrawler|DTS\sAgent|Dyak\sCrawler|E\.\sOrliac|Easy\-Thumb|echo|EsriBot|Exabot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Favicon\sdownloader|^Firefox|Firefox$|Firefox/\d\d\d|Firefox/99|Firefox\/0\.|Firefox\/1\.|Firefox\/3\.|Firefox\/7\.0) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Firefox\/40\.1|FirePHP|forensiqDomain\sRe\-Animator\sBot|FunWebProducts|GBot\-DE|Genieo|GetIntent\sCrawler|GetintentCrawler|Gigablast) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (glutenfreepleasure|Go\-http\-client|Google\-Apps\-Script|Google\-HTTP\-Java\-Client|GrapeshotCrawler|GreenBrowser|^gvfs|HELLO\sCrawler) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Hotbar|HRCrawler|HTTP_Request|^HTTPie|httpscheck\s\(unknown\sversion\)|HTTrack|HubSpot|HyperCrawl|ia_archiver) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (ICAP\-IOD|Iframely|^Ipad\sIphone\sSafari$|InfoPath|^Internet\sExplorer\/11\.4|^Java|JDatabaseDriverMysql|JetBrains) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (JSimplepieFactory|^libwww-perl|LightspeedSystems|link\schecker|LinkedInBot|LinkpadBot|LinksCrawler|LinqiaScrapeBot|Lipperhey) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (LivelapBot|LoadImpactRload|LSSRocket|ltx71|Lunascape|Lynx|Keyword\sExtractor|KKman|KomodiaBot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (kscan1\.4\.3|^M$|Magic\sBrowser|Mail\.RU|MaxPointCrawler|meanpathbot|Mediatoolkitbot|MegaIndex|memoryBot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (MetaURI|mfibot|MicroMessenger|Microsoft\sData\sAccess|Microsoft\sOffice\sProtocol\sDiscovery|mifetcher|MixrankBot|MJ12bot|^Mozilla$) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Mozilla/4\.[0-9]|Mozilla/([0-3]|[6-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-9])|^Mozilla/\d\.\d$|^Mozilla\scompatible$|^Mozilla/\d\.\d\s\(compatible\)$|^Mozilla/([a-z]|[A-Z])|Mozilla\sMetadata\sService|^Mr\.4x3\sPowered$) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (MSIE\s\d\d\d|MSIE\s\d\.([1-9])|MSIE\s\d\d\.([1-9])|MSIE\s\d\d\d\.([1-9])|MSIE\s5\..*\sNT\s6\.|MSIE\s5\..*\sNT\s10|MSIE\s6.*|MSIE\s8\..*\sNT\s6\.2|MSIE\s8\..*\sNT\s6\.3) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (MSIE\s9\..*\sNT\s6\.2|MSIE\s9\..*\sNT\s6\.3|MSIE\s9\..*\sNT\s10|MSIE\s10\..*\sNT\s6\.3|MSIE\s10\..*\sNT\s10|MSIE\s([a-z]|[A-Z])|MSIECrawler|mutant|nbot\/2\.0) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (NETCOMplete|NetSeer|NetSurf|NetTrack|Netvibes|NeumobBot|Niki\-Bot|oBot\/2\.3\.1) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (okhttp|office|OpenSSL|^Opera$|^Opera/7\.11|^Opera/8\.00|^Opera/9\.99|Opera\s8\.|Opera/\d\d\d) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (package|PagesInventory|Paros\/|Pcore\-HTTP|PeoplePal|PhantomJS|Photon|php\-requests|PHPCrawl) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (PocketParser|^Podcast|portalmmm|Powermarks|Presto/9|PrivacyAwareBot|^Proxy|publiclibraryarchive) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Pulsepoint|^Python|^Python\-urllib|Quix\sFetch|^QuickTime/|Qwantify|Rambler|Redirector|Revealed\-bot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Riddler|RIM\-Q10|Ruby|RukiCrawler|\srv:([a-z]|[A-Z])\.|SafeDNSBot|Scope|Scrapy|scrapy\-redis) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Screaming\sFrog|SEOlyticsCrawler|SEOkicks\-Robot|seoscanners|SemrushBot|SeznamBot|ShellShock|ShopperReports|SISTRIX) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Sitemaps\sGenerator|SiteTruth|SkypeUriPreview|Sleipnir|SMUrlExpander|SMTBot|socialayer|SoftMaker|Sogou\sweb\sspider) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (SpuhexBot|SputnikFaviconBot|StumbleUpon|sukibot|SurdotlyBot|SurveyBot|Sylera|Synapse) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (TelegramBot|Test\sCertificate\sInfo|TestCrawler|text\/html|TheFreeDictionary|Tiscali\sCommunicator|Toweyabot|Typhoeus|TUM_research_scan) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (TurnitinBot|TweetmemeBot|uname|Uptimebot|^URLMeta$|User\-Agent|Uzbl|Validator|voltron) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (W3CLineMode|W3C_Validator|W3Y3\sSearc|WbSrchh|WebCapture|WebyMon|WBSearchBot|WebThumbnail|WeSEE) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (WhatsApp|WhatWeb|Wget|Who\.is\sBot|Windows/|Windows\s([0-2]|[4-8])|Windows\sNT\)|Windows\sNT\s0|Windows\sNT\s1\.|Windows\sNT\s([2-3]|[7-9])) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (Windows\sNT\s6\.([4-9])|Windows\sNT\s10\.([1-9])|Windows\sNT\s(1[1-9]|4[0-9]|5[0-9]|6[0-9])|WindowsBaiduYunGuanJia|WindowsConnectedSearch|WinHTTP|wonderbot|woobot|WordChampBot) [NC,OR]
+  RewriteCond %{HTTP_USER_AGENT} (worldwebheritage|Wotbox|^www.ru$|wwwtype|Xenu\sLink\sSleuth|XoviBot|YaBrowser|YahooSeeker\-Testing|-|^$) [NC,OR]
+
+  # Ismert spammerek tiltása #
+  RewriteCond %{HTTP_REFERER} (needinseo\.com|semalt\.com) [NC,OR]
+
+  # SQL-injektálás, Javascript utasítások, könyvtár szerkezet babrálás kiszűrése
+  RewriteCond %{QUERY_STRING} ^.*(;|<|>|’|”|\)|%0A|%0D|%22|%27|%3C|%3E|%00).*(/\*|union|select|insert|cast|set|declare|drop|update|md5|benchmark|localhost).* [NC,OR]
+  RewriteCond %{QUERY_STRING} ^.*(stories|option=|task=|sa=U|plugin=|file=|ei=|ved=|method=|usg=|cid=).* [NC,OR]
+  RewriteCond %{QUERY_STRING} ^.*(\.\./|\/\/).* [OR]
+  RewriteCond %{QUERY_STRING} ^.*(a=register&|getSnoozing|InterYield|m=member&|null).* [NC]
+  RewriteCond %{HTTP:Accept-Language} (^$)
+  RewriteRule .* - [F,L]
+
+  # Url végi / jel eltávolítása
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)/$ /$1 [R=301,L]
+
+  # Minden kérelem átirányítása az index.php-ra
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.php [NC,L]
+
+</IfModule>
+
+# Minden kérelem átirányítása az index.php-ra (ha nincs mod_rewrite)
+<IfModule !mod_rewrite.c>
+  FallbackResource /index.php
+</IfModule>
+
+# Tömörítés
+<IfModule mod_deflate.c>
+
+  # deflate tömörítés kényszerítése
+  <IfModule mod_setenvif.c>
+    <IfModule mod_headers.c>
+      SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+|[X~-]{4,13}$ HAVE_Accept-Encoding
+      RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+    </IfModule>
+  </IfModule>
+
+  # html, txt, css, js, json, xml, stb tömörítése
+  <IfModule mod_filter.c>
+    AddOutputFilterByType DEFLATE application/atom+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/ld+json
+    AddOutputFilterByType DEFLATE application/manifest+json
+    AddOutputFilterByType DEFLATE application/rdf+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/schema+json
+    AddOutputFilterByType DEFLATE application/vnd.geo+json
+    AddOutputFilterByType DEFLATE application/vnd.ms-fontobject
+    AddOutputFilterByType DEFLATE application/x-font-ttf
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/x-web-app-manifest+json
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE font/eot
+    AddOutputFilterByType DEFLATE font/opentype
+    AddOutputFilterByType DEFLATE image/bmp
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE image/vnd.microsoft.icon
+    AddOutputFilterByType DEFLATE image/x-icon
+    AddOutputFilterByType DEFLATE text/cache-manifest
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/vcard
+    AddOutputFilterByType DEFLATE text/vnd.rim.location.xloc
+    AddOutputFilterByType DEFLATE text/vtt
+    AddOutputFilterByType DEFLATE text/x-component
+    AddOutputFilterByType DEFLATE text/x-cross-domain-policy
+    AddOutputFilterByType DEFLATE text/xml
+  </IfModule>
+
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive on
+# Perhaps better to whitelist expires rules? Perhaps.
+  ExpiresDefault                          "access plus 1 month"
+# cache.appcache needs re-requests in FF 3.6 (thx Remy ~Introducing HTML5)
+  ExpiresByType text/cache-manifest       "access plus 0 seconds"
+# Your document html
+  ExpiresByType text/html                 "access plus 0 seconds"
+# Data
+  ExpiresByType text/xml                  "access plus 0 seconds"
+  ExpiresByType application/xml           "access plus 0 seconds"
+  ExpiresByType application/json          "access plus 0 seconds"
+# RSS feed
+  ExpiresByType application/rss+xml       "access plus 1 hour"
+# Favicon (cannot be renamed)
+  ExpiresByType image/x-icon              "access plus 1 week"
+# Media: images, video, audio
+  ExpiresByType image/gif                 "access plus 1 month"
+  ExpiresByType image/png                 "access plus 1 month"
+  ExpiresByType image/jpg                 "access plus 1 month"
+  ExpiresByType image/jpeg                "access plus 1 month"
+  ExpiresByType video/ogg                 "access plus 1 month"
+  ExpiresByType audio/ogg                 "access plus 1 month"
+  ExpiresByType video/mp4                 "access plus 1 month"
+  ExpiresByType video/webm                "access plus 1 month"
+# HTC files  (css3pie)
+  ExpiresByType text/x-component          "access plus 1 month"
+# Webfonts
+  ExpiresByType font/truetype             "access plus 1 month"
+  ExpiresByType font/opentype             "access plus 1 month"
+  ExpiresByType application/x-font-woff   "access plus 1 month"
+  ExpiresByType image/svg+xml             "access plus 1 month"
+  ExpiresByType application/vnd.ms-fontobject "access plus 1 month"
+# CSS and JavaScript
+  ExpiresByType text/css                  "access plus 1 year"
+  ExpiresByType application/javascript    "access plus 1 year"
+  ExpiresByType text/javascript           "access plus 1 year"
+</IfModule>
+
+# ETag eltávolítása
+<IfModule mod_headers.c>
+  Header unset ETag
+</IfModule>
+
+FileETag None
